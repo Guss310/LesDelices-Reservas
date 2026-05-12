@@ -3,7 +3,7 @@ import Link from 'next/link';
 const hours = [
   { day: 'Lunes a Viernes', time: '08:00 – 23:00' },
   { day: 'Sábado', time: '08:00 – 23:30' },
-  { day: 'Domingo', time: '09:00 – 22:00' },
+  { day: 'Domingo', time: '08:00 – 23:00' },
 ];
 
 export default function Footer() {
@@ -18,6 +18,11 @@ export default function Footer() {
           </p>
           <p className="text-white/50 text-xs">
             Calle 20 & 29, Punta del Este, Maldonado, Uruguay
+          </p>
+          <p className="text-white/50 text-xs mt-1">
+            <a href="https://www.instagram.com/lesdelicespunta/" target="_blank" rel="noopener noreferrer" className="hover:text-dorado transition-colors">
+              Instagram @lesdelicespunta
+            </a>
           </p>
         </div>
 
