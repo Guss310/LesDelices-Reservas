@@ -1,0 +1,505 @@
+{
+  "info": {
+    "name": "Les Délices — API",
+    "description": "Colección completa para probar la API de Supabase y el webhook de n8n del restaurante Les Délices.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "SUPABASE_URL",
+      "value": "https://qnppqrmclylllagjzqov.supabase.co",
+      "type": "string"
+    },
+    {
+      "key": "SUPABASE_KEY",
+      "value": "sb_publishable_UKi7bly3jLXYEU2uAa9ngw_fComIEDJ",
+      "type": "string"
+    },
+    {
+      "key": "N8N_WEBHOOK",
+      "value": "http://localhost:5678/webhook/z7tMEsQh4VnFvvLr/webhook/reserva-confirmacion",
+      "type": "string"
+    },
+    {
+      "key": "RESERVATION_ID",
+      "value": "",
+      "description": "UUID de una reserva — se completa automáticamente al crear una reserva con el script de test.",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Reservas — Supabase",
+      "item": [
+        {
+          "name": "1. Crear reserva",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "    pm.collectionVariables.set('RESERVATION_ID', res[0].id);",
+                  "    pm.test('Reserva creada con ID', () => pm.expect(res[0].id).to.be.a('string'));",
+                  "}",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Prefer", "value": "return=representation" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana García\",\n  \"email\": \"ana@mail.com\",\n  \"phone\": \"+598 99 111 222\",\n  \"date\": \"2026-06-15\",\n  \"time\": \"20:00\",\n  \"guests\": 3,\n  \"special_requests\": \"Sin gluten\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"]
+            },
+            "description": "Crea una nueva reserva. El script guarda automáticamente el ID en la variable RESERVATION_ID para usar en los siguientes requests."
+          }
+        },
+        {
+          "name": "2. Listar todas las reservas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations?select=*&order=created_at.desc",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"],
+              "query": [
+                { "key": "select", "value": "*" },
+                { "key": "order", "value": "created_at.desc" }
+              ]
+            },
+            "description": "Devuelve todas las reservas ordenadas por fecha de creación descendente."
+          }
+        },
+        {
+          "name": "3. Buscar por email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "if (res.length > 0) {",
+                  "    pm.test('Email coincide', () => pm.expect(res[0].email).to.equal('ana@mail.com'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations?email=eq.ana@mail.com&select=*",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"],
+              "query": [
+                { "key": "email", "value": "eq.ana@mail.com" },
+                { "key": "select", "value": "*" }
+              ]
+            },
+            "description": "Filtra reservas por email exacto. Cambiar 'ana@mail.com' por el email a consultar."
+          }
+        },
+        {
+          "name": "4. Buscar por fecha",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations?date=eq.2026-06-15&select=*&order=time.asc",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"],
+              "query": [
+                { "key": "date", "value": "eq.2026-06-15" },
+                { "key": "select", "value": "*" },
+                { "key": "order", "value": "time.asc" }
+              ]
+            },
+            "description": "Devuelve todas las reservas de un día específico, ordenadas por horario."
+          }
+        },
+        {
+          "name": "5. Filtrar por estado (confirmed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const res = pm.response.json();",
+                  "res.forEach(r => pm.test(`Reserva ${r.id} confirmada`, () => pm.expect(r.status).to.equal('confirmed')));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations?status=eq.confirmed&select=*",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"],
+              "query": [
+                { "key": "status", "value": "eq.confirmed" },
+                { "key": "select", "value": "*" }
+              ]
+            },
+            "description": "Lista solo las reservas con estado 'confirmed'. Cambiar por 'cancelled' o 'completed' según necesidad."
+          }
+        },
+        {
+          "name": "6. Contar reservas por fecha",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Header Content-Range presente', () => pm.expect(pm.response.headers.get('Content-Range')).to.exist);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" },
+              { "key": "Prefer", "value": "count=exact" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations?date=eq.2026-06-15&select=count",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"],
+              "query": [
+                { "key": "date", "value": "eq.2026-06-15" },
+                { "key": "select", "value": "count" }
+              ]
+            },
+            "description": "Devuelve el total de reservas para una fecha. El conteo exacto viene en el header 'Content-Range' (ej: 0-2/3)."
+          }
+        },
+        {
+          "name": "7. Cancelar reserva",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations?id=eq.{{RESERVATION_ID}}",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"],
+              "query": [
+                { "key": "id", "value": "eq.{{RESERVATION_ID}}" }
+              ]
+            },
+            "description": "Cambia el estado de la reserva a 'cancelled'. Usa el RESERVATION_ID guardado automáticamente al crear. También acepta 'completed'."
+          }
+        },
+        {
+          "name": "8. Eliminar reserva",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" }
+            ],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations?id=eq.{{RESERVATION_ID}}",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"],
+              "query": [
+                { "key": "id", "value": "eq.{{RESERVATION_ID}}" }
+              ]
+            },
+            "description": "Elimina permanentemente una reserva por ID. Usar con precaución."
+          }
+        }
+      ]
+    },
+    {
+      "name": "n8n — Email de confirmación",
+      "item": [
+        {
+          "name": "9. Enviar email de confirmación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Workflow iniciado', () => {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.message).to.equal('Workflow was started');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana García\",\n  \"email\": \"ana@mail.com\",\n  \"phone\": \"+598 99 111 222\",\n  \"date\": \"2026-06-15\",\n  \"time\": \"20:00\",\n  \"guests\": 3,\n  \"special_requests\": \"Sin gluten\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{N8N_WEBHOOK}}",
+              "host": ["{{N8N_WEBHOOK}}"]
+            },
+            "description": "Dispara el workflow de n8n que genera y envía el email de confirmación HTML al cliente. Requiere que n8n esté corriendo en localhost:5678."
+          }
+        },
+        {
+          "name": "10. Email sin solicitudes especiales",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Workflow iniciado', () => {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.message).to.equal('Workflow was started');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos López\",\n  \"email\": \"carlos@mail.com\",\n  \"phone\": \"+598 99 333 444\",\n  \"date\": \"2026-06-20\",\n  \"time\": \"13:00\",\n  \"guests\": 2,\n  \"special_requests\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{N8N_WEBHOOK}}",
+              "host": ["{{N8N_WEBHOOK}}"]
+            },
+            "description": "Igual que el anterior pero sin solicitudes especiales. Verifica que el email omite correctamente la fila de 'Solicitudes especiales'."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validaciones — Errores esperados",
+      "item": [
+        {
+          "name": "11. Guests = 0 (inválido)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test\",\n  \"email\": \"test@mail.com\",\n  \"phone\": \"099000000\",\n  \"date\": \"2026-06-15\",\n  \"time\": \"20:00\",\n  \"guests\": 0\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"]
+            },
+            "description": "Debe devolver 400. La constraint CHECK (guests BETWEEN 1 AND 20) rechaza valores menores a 1."
+          }
+        },
+        {
+          "name": "12. Guests = 21 (inválido)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test\",\n  \"email\": \"test@mail.com\",\n  \"phone\": \"099000000\",\n  \"date\": \"2026-06-15\",\n  \"time\": \"20:00\",\n  \"guests\": 21\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"]
+            },
+            "description": "Debe devolver 400. La constraint CHECK (guests BETWEEN 1 AND 20) rechaza valores mayores a 20."
+          }
+        },
+        {
+          "name": "13. Status inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test\",\n  \"email\": \"test@mail.com\",\n  \"phone\": \"099000000\",\n  \"date\": \"2026-06-15\",\n  \"time\": \"20:00\",\n  \"guests\": 2,\n  \"status\": \"pendiente\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"]
+            },
+            "description": "Debe devolver 400. La constraint CHECK solo acepta: 'confirmed', 'cancelled', 'completed'."
+          }
+        },
+        {
+          "name": "14. Campo requerido faltante (name)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "apikey", "value": "{{SUPABASE_KEY}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@mail.com\",\n  \"phone\": \"099000000\",\n  \"date\": \"2026-06-15\",\n  \"time\": \"20:00\",\n  \"guests\": 2\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{SUPABASE_URL}}/rest/v1/reservations",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["rest", "v1", "reservations"]
+            },
+            "description": "Debe devolver 400. El campo 'name' tiene NOT NULL constraint."
+          }
+        }
+      ]
+    }
+  ]
+}
