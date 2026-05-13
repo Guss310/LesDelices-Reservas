@@ -168,7 +168,7 @@ export default function HomePage() {
             <div className="space-y-4 text-gray-600 text-sm leading-relaxed mb-8">
               <p>
                 <strong className="text-gray-800">Dirección:</strong><br />
-                Gorlero &amp; 25 de Mayo, Punta del Este, Maldonado, Uruguay
+                Calle 20 &amp; 29, Punta del Este, Uruguay
               </p>
               <p>
                 <strong className="text-gray-800">Teléfono:</strong><br />
@@ -177,9 +177,9 @@ export default function HomePage() {
             </div>
             <div className="border-l-4 border-[#326c2d] pl-4 space-y-1 text-sm text-gray-600">
               <p className="font-semibold text-gray-800 mb-2">Horarios de atención</p>
-              <p>Lunes a Viernes: 08:00 – 23:00</p>
-              <p>Sábado: 08:00 – 23:30</p>
-              <p>Domingo: 09:00 – 22:00</p>
+              <p>Lunes a Viernes: 07:00 – 20:00</p>
+              <p>Sábado: 07:00 – 20:00</p>
+              <p>Domingo: 07:00 – 20:00</p>
             </div>
           </div>
 
