@@ -1,9 +1,9 @@
 import Link from 'next/link';
 
 const hours = [
-  { day: 'Lunes a Viernes', time: '08:00 – 23:00' },
-  { day: 'Sábado', time: '08:00 – 23:30' },
-  { day: 'Domingo', time: '08:00 – 23:00' },
+  { day: 'Lunes a Viernes', time: '07:00 – 20:00' },
+  { day: 'Sábado', time: '07:00 – 20:00' },
+  { day: 'Domingo', time: '07:00 – 20:00' },
 ];
 
 export default function Footer() {
