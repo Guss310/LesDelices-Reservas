@@ -172,7 +172,7 @@ export default function HomePage() {
               </p>
               <p>
                 <strong className="text-gray-800">Teléfono:</strong><br />
-                +598 42 XXX XXX
+                 4244 3640
               </p>
             </div>
             <div className="border-l-4 border-[#326c2d] pl-4 space-y-1 text-sm text-gray-600">
